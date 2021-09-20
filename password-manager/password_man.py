@@ -1,63 +1,59 @@
 #!/usr/bin/python
 
-import sys, getopt
+import sys
 import sqlite3
+import random
+import string
+import hashlib
+
+def add_to_db(self, domain: string, key: string):
+    characters = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(random.choice(characters) for i in range(12))
+    encrypted_password = password
+
+    connection = sqlite3.connect('database.sqlite3')
+    cur = connection.cursor()
+    cur.execute("""INSERT INTO passwords VALUES (?, ?)""", domain, encrypted_password)
+    conn.commit()
+
+    print("Domain Name: {}".format(domain))
+    print("Password: {}".format(password))
+
+def check_and_process_db(self, domain: string, key: string) -> bool:
+    connection = sqlite3.connect('database.sqlite3')
+    cur = connection.cursor()
+    cur.execute("""SELECT * FROM passwords WHERE domain = ?)""", domain)
+    domain_data = cur.fetchall()
+    conn.commit()
+
+    if len(domain_data) == 0:
+        self.add_to_db(domain, key)
+    else:
+        print("Domain Name: {}".format(domain_data[0]))
+
+        decrypted_password = domain_data[1]
+        print("Password: {}".format(password))
+
 
 def main(argv):
-   try:
-      opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
-   except getopt.GetoptError:
-      print 'test.py -i <inputfile> -o <outputfile>'
-      sys.exit(2)
-   for opt, arg in opts:
-      if opt == '-h':
-         print 'test.py -i <inputfile> -o <outputfile>'
-         sys.exit()
-      elif opt in ("-i", "--ifile"):
-         inputfile = arg
-      elif opt in ("-o", "--ofile"):
-         outputfile = arg
-   print 'Input file is "', inputfile
-   print 'Output file is "', outputfile
+    manager_entry_password = argv[0]
+    master_domain = "master"
 
-if __name__ == "__main__":
-   main(sys.argv[1:])
-
-    # Populating DataBase.
-    conn = sqlite3.connect('database.sqlite3')
-    cur = conn.cursor()
-
-    fp = open('database.sql', 'r')
-    cur.executescript(fp.read())
-    fp.close()
-
+    connection = sqlite3.connect('database.sqlite3')
+    cur = connection.cursor()
+    cur.execute("""SELECT * FROM passwords WHERE domain = ?)""", master_domain)
+    domain_data = cur.fetchall()
     conn.commit()
 
-    favorites = False
-    count = 0
-    for item in faculty_staff:
-        for d_type in item["Discount_Types"]:
-            cur.execute("INSERT INTO faculty_staff VALUES(?, ?, ?, ?, ?, ?)",
-                        [count, item["Provider"], item["Discount"], item["Directions"], d_type, favorites])
-            count += 1
-
-    scount = 0
-    for item in students:
-        for d_type in item["Discount_Types"]:
-            cur.execute("INSERT INTO students VALUES(?, ?, ?, ?, ?, ?)",
-                        [scount, item["Provider"], item["Discount"], item["Directions"], d_type, favorites])
-            scount += 1
-
-    ocount = 0
-    for item in others:
-        for d_type in item["Discount_Types"]:
-            cur.execute("INSERT INTO others VALUES(?, ?, ?, ?, ?, ?)",
-                        [ocount, item["Provider"], item["Discount"], item["Directions"], d_type, favorites])
-            ocount += 1
-
-    conn.commit()
-
+    h = hashlib.sha256()
+    h.update(manager_entry_password)
+    password_hash = h.hexidigest()
+    if password_hash == domain_data[1]:
+        domain = lower(input("Enter a domain name: "))
+        check_in_db(domain, password_hash)
+    else:
+        print("Incorrect Password !!, Please try again !!")
 
 
 if __name__ == "__main__":
-    extract_data_and_populate_sql_database()
+    main(sys.argv[1:])
